@@ -10,7 +10,7 @@ import telebot
 
 SYMBOL = 'BTCUSDT'
 SYMBOLS = []
-TIME = "6 month ago UTC+3"
+TIME = "1 month ago UTC+3"
 
 candleDataClose_4H = []
 candleDataClose_1H = []
@@ -74,21 +74,27 @@ def MACDEMA(close):
     macdSell = LigneMACD[-2] > Lignesignal[-2] and LigneMACD[-3] > Lignesignal[-3] and LigneMACD[-1] <= Lignesignal[-1]
     return macdBuy,macdSell, round(LigneMACD[-1],2), round(Lignesignal[-1],2)
 
-def goldenCrossfinder(close):
-    SMAfast = talib.MA(numpy.asarray(close), timeperiod=50)
-    SMAslow = talib.MA(numpy.asarray(close), timeperiod=200)
-    son3 = []
+def goldenCrossCalc(close):
+    MAfast = talib.MA(numpy.asarray(close), timeperiod=50)
+    MAslow = talib.MA(numpy.asarray(close), timeperiod=200)
+    goldenCross = []
+    deathCross = []
     for x in range(-3,0):
-        ma = True
-        for y in range(x-10,x):
-            if SMAfast[y] > SMAslow[y]:
-                ma = False
+        fastUnder = True
+        slowUnder = True
+        for y in range(x-8,x):
+            if MAfast[y] > MAslow[y]:
+                fastUnder = False
                 break
-        son3.append(ma and SMAfast[x] >= SMAslow[x])
+            if MAfast[y] < MAslow[y]:
+                slowUnder = False
+                break
+        goldenCross.append(fastUnder and MAfast[x] >= MAslow[x])
+        deathCross.append(slowUnder and MAfast[x] <= MAslow[x])
 
-    return son3
+    return goldenCross,deathCross
 
-def historcialKline3():
+def macdAndRsiKline():
     dataBuy = []
     for x in SYMBOLS:
         close=[]
@@ -101,7 +107,7 @@ def historcialKline3():
             macdBuy, signalSell, macd, signal = MACDEMA(close)
             print(x," ",macd," ",signal, " ", invRsi)
 
-            if macdBuy:
+            if macdBuy and rsiBuy:
                 data = {
                     "symbol": x,
                     "openPrice": klines[-1][4],
@@ -117,7 +123,7 @@ def historcialKline3():
     if len(dataBuy)>0:
         return dataBuy
 
-def historcialKline():
+def rsiKline():
     RSIDATA = []
     for x in SYMBOLS:
         close=[]
@@ -149,26 +155,27 @@ def historicalKline2():
         for entry in klines:
             candleDataClose_1H.append(float(entry[4]))
 
-def historicalKline4():
-    RSIDATA = []
+def goldenCrossKline():
     for x in SYMBOLS:
         close=[]
-        klines = client.get_historical_klines(x, Client.KLINE_INTERVAL_4HOUR, TIME)
+        klines = client.get_historical_klines(x, Client.KLINE_INTERVAL_1DAY, TIME)
         if len(klines) > 200:
             for entry in klines:
                 close.append(float(entry[4]))
 
-            goldenCross = goldenCrossfinder(close)
+            goldenCross,deathcross = goldenCrossCalc(close)
 
             print(x," ",goldenCross)
-            #if goldenCross:
-            #    data = {
-            #        "symbol": x,
-            #        "openPrice": klines[-1][4],
-            #        "time": klines[-1][0],
-            #    }
-            #    RSIDATA.append(data)
-    return RSIDATA
+            if goldenCross[0] or goldenCross[1] or goldenCross[2]:
+                msg1 = "Golden Cross: " + x
+                bot.send_message(-1001408874432, msg1)
+                print(msg1)
+            if deathcross[0] or deathcross[1] or deathcross[2]:
+                msg2 = "Death Cross: " + x
+                print(msg2)
+                bot.send_message(-1001408874432, msg2)
+            
+                
 
 def process_message_1HOUR(msg):
     global hour4_first
@@ -192,11 +199,12 @@ if __name__ == '__main__':
 
     client = Client(config.api_key, config.api_secret)
     bot = telebot.TeleBot("1628197070:AAFLvfUgbwO8qnY4YkQJ8yLHLoube-51GKc", parse_mode="MarkdownV2")
+    bot.polling()
     
     fillSymbols()
-    historicalKline4()
+    macdAndRsiKline()
     #websocket()
-    #bot.polling()
+    
 
 
     # -1001408874432 GRUP

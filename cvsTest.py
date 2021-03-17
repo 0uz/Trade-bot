@@ -12,23 +12,22 @@ client = Client(config.api_key, config.api_secret)
 #        x = numpy.asarray(candleDataClose_1H)
 #        numpy.savetxt('BTCUSDT.csv',x,delimiter=",")
 #
-
+lens = client.get_historical_klines('BTCUSDT',Client.KLINE_INTERVAL_1DAY,'7 month ago UTC+3')
+print(len(lens))
 def goldenCrossfinder():
     SMAfast = numpy.random.random(50)
     SMAslow = numpy.random.random(200)
 
     for x in range(-3,0):
+        print("---------")
         print(x)
         print("---------")
-        ma = True
-        print(ma)
         for y in range(x-10,x):
-            if 3 >= 1:    
+            if 3 <= 1:    
                 print("break")
-                ma = False
-                print(ma)
                 break
             else:
                 print(y)
+
 goldenCrossfinder()
 #historicalKline2()
