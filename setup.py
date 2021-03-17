@@ -199,10 +199,9 @@ if __name__ == '__main__':
 
     client = Client(config.api_key, config.api_secret)
     bot = telebot.TeleBot("1628197070:AAFLvfUgbwO8qnY4YkQJ8yLHLoube-51GKc", parse_mode="MarkdownV2")
-    bot.polling()
-    
     fillSymbols()
     macdAndRsiKline()
+    bot.polling()
     #websocket()
     
 
