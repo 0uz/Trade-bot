@@ -24,6 +24,7 @@ EMA_15M = []
 MACD = []
 
 counter = 0
+bot = telebot.TeleBot("1628197070:AAFLvfUgbwO8qnY4YkQJ8yLHLoube-51GKc", parse_mode="MarkdownV2")
 
 def fillSymbols():
     SYMBOLS.clear()
@@ -153,7 +154,6 @@ def goldenCrossKline():
 
 if __name__ == '__main__':
     client = Client(config.api_key, config.api_secret)
-    bot = telebot.TeleBot("1628197070:AAFLvfUgbwO8qnY4YkQJ8yLHLoube-51GKc", parse_mode="MarkdownV2")
     fillSymbols()
     print("Buyer is working")
     while True:

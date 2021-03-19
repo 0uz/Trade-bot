@@ -5,8 +5,8 @@ from binance.client import Client
 from binance.enums import *
 from binance.websockets import BinanceSocketManager
 import talib
-import telebot
 import numpy
+from setup import bot
 
 SYMBOLS = []
 TIME='1 month ago UTC+3'
@@ -66,7 +66,6 @@ def MACDEMA(close):
 if __name__ == '__main__':
     print("Seller is working...")
     client = Client(config.api_key, config.api_secret)
-    bot = telebot.TeleBot("1628197070:AAFLvfUgbwO8qnY4YkQJ8yLHLoube-51GKc", parse_mode="MarkdownV2")
     while True:
         if Database.count_open_orders(connection) > 0:
             macdAndRsiKlineSell()
