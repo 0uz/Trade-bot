@@ -4,8 +4,6 @@ import config
 from binance.client import Client
 from binance.enums import *
 from binance.websockets import BinanceSocketManager
-import talib
-import numpy
 from setup import bot
 from setup import MACDEMA
 from setup import RSI
