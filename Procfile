@@ -1,2 +1,3 @@
-worker: python seller.py
-worker: python telegram.py
+buyer: python setup.py
+seller: python seller.py
+telegram: python telegram.py
