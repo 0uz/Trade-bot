@@ -103,6 +103,7 @@ def macdAndRsiKlineBuy():
 
             rsiBuy, rsiSell, invRsi = RSI(close)
             macdBuy, signalSell, macd, signal = MACDEMA(close)
+            print(x)
             if macdBuy and rsiBuy:
                 data = {
                     "symbol": x,

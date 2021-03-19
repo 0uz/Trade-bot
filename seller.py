@@ -7,6 +7,8 @@ from binance.websockets import BinanceSocketManager
 import talib
 import numpy
 from setup import bot
+from setup import MACDEMA
+from setup import RSI
 
 SYMBOLS = []
 TIME='1 month ago UTC+3'
@@ -31,37 +33,6 @@ def macdAndRsiKlineSell():
                 bot.send_message(-1001408874432, msg)
                 print(msg)
 
-def RSI(close):
-    rsi = talib.RSI(numpy.asarray(close), timeperiod=21)
-    v1 = 0.1 * (rsi - 50)
-    v2 = talib.WMA(numpy.asarray(v1), timeperiod=9)
-    inv = []
-    for entry in v2:
-        inv.append((math.exp(2 * entry) - 1) / (math.exp(2 * entry) + 1))
-
-    rsiSell = (inv[-2] > 0.5) and (inv[-1] <= 0.5)
-    rsiBuy = (inv[-2] < -0.5) and (inv[-1] >= -0.5)
-
-    return rsiBuy, rsiSell, round(inv[-1], 2)
-
-def MACDEMA(close):
-    MMEslowa = talib.EMA(numpy.asarray(close),timeperiod=26)
-    MMEslowb = talib.EMA(MMEslowa, timeperiod=26)
-    DEMAslow = ((2 * MMEslowa) - MMEslowb)
-
-    MMEfasta = talib.EMA(numpy.asarray(close), timeperiod=12)
-    MMEfastb = talib.EMA(MMEfasta, timeperiod=12)
-    DEMAfast = ((2 * MMEfasta) - MMEfastb)
-
-    LigneMACD = DEMAfast - DEMAslow
-
-    MMEsignala = talib.EMA(LigneMACD, timeperiod=9)
-    MMEsignalb = talib.EMA(MMEsignala, timeperiod=9)
-    Lignesignal = ((2 * MMEsignala) - MMEsignalb)
-
-    macdBuy = LigneMACD[-2] < Lignesignal[-2] and LigneMACD[-1] >= Lignesignal[-1]
-    macdSell = LigneMACD[-2] > Lignesignal[-2] and LigneMACD[-1] <= Lignesignal[-1]
-    return macdBuy,macdSell, round(LigneMACD[-1],2), round(Lignesignal[-1],2)
 
 if __name__ == '__main__':
     print("Seller is working...")
