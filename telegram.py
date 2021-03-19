@@ -7,7 +7,7 @@ def handle_command(message):
     msg = Database.profitCalc(connection)
     bot.send_message(message.chat.id, msg)
 
-@bot.message_handler(commands=['altin'])
+@bot.message_handler(commands=['altın'])
 def handle_command(message):
     bot.send_message(message.chat.id,"Para altında kardeşim")
 

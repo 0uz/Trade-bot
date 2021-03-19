@@ -23,13 +23,13 @@ def macdAndRsiKlineSell():
                 close.append(float(entry[4]))
 
             rsiBuy, rsiSell, invRsi = RSI(close)
-            macdBuy, signalSell, macd, signal = MACDEMA(close)
+            macdBuy, macdSell, macd, signal = MACDEMA(close)
             print(x[1]," ",macd," ",signal, " ", invRsi)
 
-            if signalSell:
+            if macdSell:
                 order = (klines[-1][4],klines[-1][0],x[0])
                 Database.sellOrder(connection,order)
-                msg = x[1]+ "\U0001F4C8 Satiş:" + str(klines[-1][4]).replace(".", ",")
+                msg = x[1]+ "\U0001F4C8 Satiş: " + str(round(klines[-1][4],2)).replace(".", ",")
                 bot.send_message(-1001408874432, msg)
                 print(msg)
 

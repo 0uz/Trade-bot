@@ -71,6 +71,17 @@ def MACDEMA(close):
     macdSell = LigneMACD[-2] > Lignesignal[-2] and LigneMACD[-1] <= Lignesignal[-1]
     return macdBuy,macdSell, round(LigneMACD[-1],2), round(Lignesignal[-1],2)
 
+def cci(high, low, close):
+    real = talib.CCI(numpy.asarray(high),numpy.asarray(low),numpy.asarray(close),timeperiod=13)
+    v1 = 0.1*(real/4)
+    v2 = talib.WMA(v1,timeperiod=9)
+    INV = []
+    for x in v2:
+        INV.append((math.exp(2*x)-1)/(math.exp(2*x)+1))
+    cciBuy = INV[-2] < -0.75 and INV[-1] >= -0.75
+    cciSell = INV[-2] > -0.75 and INV[-1] <= -0.75
+    return cciBuy,cciSell,INV[-1]
+
 def goldenCrossCalc(close):
     MAfast = talib.MA(numpy.asarray(close), timeperiod=50)
     MAslow = talib.MA(numpy.asarray(close), timeperiod=200)
@@ -95,31 +106,27 @@ connection = Database.create_connection("test.db")
 
 def macdAndRsiKlineBuy():
     for x in SYMBOLS:
+        high =[]
+        low = []
         close=[]
         klines = client.get_historical_klines(x, Client.KLINE_INTERVAL_1HOUR, TIME)
         if len(klines) > 40:
             for entry in klines:
+                high.append(float(entry[2]))
+                low.append(float(entry[3]))
                 close.append(float(entry[4]))
-
-            rsiBuy, rsiSell, invRsi = RSI(close)
+            cciBuy ,cciSell, invcci = cci(high,low,close)
             macdBuy, signalSell, macd, signal = MACDEMA(close)
             print(x)
-            if macdBuy and rsiBuy:
-                data = {
-                    "symbol": x,
-                    "openPrice": klines[-1][4],
-                    "time": klines[-1][0],
-                    "rsi" : invRsi,
-                    "macd" : macd,
-                    "macdSignal" : signal
-                }
+            if macdBuy and cciBuy:
                 if Database.count_open_orders(connection)<10 and (not Database.isExist(connection,x)):
                     order =(x,klines[-1][4],klines[-1][0]/1000)
                     Database.create_buy_order(connection,order)
                 else:
                     break
-                msg = data["symbol"]+ "\U0001F4C8 Alış:" + str(data["openPrice"]).replace(".", ",")
-                bot.send_message(-1001408874432, msg)
+                msg = x + "\U0001F4C8 Alış: " + str(round(float(klines[-1][4]),4)).replace(".", ",")
+                #bot.send_message(-1001408874432, msg)
+                print(msg)
    
 
 
