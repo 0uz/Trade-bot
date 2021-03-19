@@ -120,7 +120,6 @@ def macdAndRsiKlineBuy():
                     break
                 msg = data["symbol"]+ "\U0001F4C8 Alış:" + str(data["openPrice"]).replace(".", ",")
                 bot.send_message(-1001408874432, msg)
-                print(msg)
    
 
 

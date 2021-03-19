@@ -33,11 +33,11 @@ def macdAndRsiKlineSell():
   
 
 if __name__ == '__main__':
+    print("Seller is working...")
     client = Client(config.api_key, config.api_secret)
     while True:
         if Database.count_open_orders(connection) > 0:
             macdAndRsiKlineSell()
         else:
-            print("Satici 20 saniye uyuyor")
             time.sleep(20)
 
