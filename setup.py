@@ -125,7 +125,7 @@ def macdAndRsiKlineBuy():
                 else:
                     break
                 msg = x + "\U0001F4C8 Alış: " + str(round(float(klines[-1][4]),4)).replace(".", ",")
-                #bot.send_message(-1001408874432, msg)
+                bot.send_message(-1001408874432, msg)
                 print(msg)
    
 

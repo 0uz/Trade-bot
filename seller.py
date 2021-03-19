@@ -29,7 +29,7 @@ def macdAndRsiKlineSell():
             if macdSell:
                 order = (klines[-1][4],klines[-1][0],x[0])
                 Database.sellOrder(connection,order)
-                msg = x[1]+ "\U0001F4C8 Satiş: " + str(round(klines[-1][4],2)).replace(".", ",")
+                msg = x[1]+ "\U0001F4C8 Satiş: " + str(round(klines[-1][4],4)).replace(".", ",")
                 bot.send_message(-1001408874432, msg)
                 print(msg)
 
