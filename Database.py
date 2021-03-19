@@ -65,6 +65,7 @@ def profitCalc(conn):
     cur.execute('SELECT symbol,openPrice,closePrice FROM orders where selled = 1')
     rows = cur.fetchall()
     message=""
+    if len(rows)==0: return "Satış gerçekleşmemiş..."
     for x in rows:
         prof = round((((x[2]*100)/x[1])-100),2)
         if prof>0:
