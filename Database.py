@@ -84,4 +84,3 @@ sql_create_table = """CREATE TABLE IF NOT EXISTS orders(
                                 );"""
 
 drop_table = """DROP TABLE orders"""
-con = create_connection("test.db")
