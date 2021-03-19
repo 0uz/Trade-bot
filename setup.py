@@ -1,3 +1,4 @@
+import time
 import config
 from binance.client import Client
 import numpy
@@ -6,10 +7,13 @@ import math
 from binance.enums import *
 from binance.websockets import BinanceSocketManager
 import telebot
+import Database
+
 
 
 SYMBOL = 'BTCUSDT'
 SYMBOLS = []
+SYMBOLSWITHOUT = ['DOWN','UP','TUSDUSDT']
 TIME = "1 month ago UTC+3"
 
 candleDataClose_4H = []
@@ -25,22 +29,14 @@ def fillSymbols():
     SYMBOLS.clear()
     data = client.get_all_tickers()
     for x in data:
-        if x['symbol'][-4:] == 'USDT' and x['symbol'].find('UP')==-1 and x['symbol'].find('DOWN')==-1:
-            SYMBOLS.append(x['symbol'])
-
-def process_message_4HOUR(msg):
-    global hour4_first
-    global EMA_1H
-    global counter
-    if msg['k']['x']:
-        candleDataClose_4H.append(round(float(msg['k']['c']), 2))
-    else:
-        candleDataClose_4H[-1] = round(float(msg['k']['c']), 2)
-
-    print(SYMBOL," inverse rsi: ", RSI(candleDataClose_4H))
-    print('-------------------------')
-    counter+=1
-    print(counter)
+        if x['symbol'][-4:] == 'USDT':
+            for a in SYMBOLSWITHOUT:
+                allOf = True
+                if x['symbol'].find(a)!=-1:
+                    allOf=False
+                    break
+            if allOf:
+                SYMBOLS.append(x['symbol'])
 
 def RSI(close):
     rsi = talib.RSI(numpy.asarray(close), timeperiod=21)
@@ -94,12 +90,13 @@ def goldenCrossCalc(close):
 
     return goldenCross,deathCross
 
-def macdAndRsiKline():
-    dataBuy = []
+connection = Database.create_connection("test.db")
+
+def macdAndRsiKlineBuy():
     for x in SYMBOLS:
         close=[]
         klines = client.get_historical_klines(x, Client.KLINE_INTERVAL_1HOUR, TIME)
-        if len(klines) > 26:
+        if len(klines) > 40:
             for entry in klines:
                 close.append(float(entry[4]))
 
@@ -107,7 +104,7 @@ def macdAndRsiKline():
             macdBuy, signalSell, macd, signal = MACDEMA(close)
             print(x," ",macd," ",signal, " ", invRsi)
 
-            if macdBuy and rsiBuy:
+            if macdBuy:
                 data = {
                     "symbol": x,
                     "openPrice": klines[-1][4],
@@ -116,37 +113,17 @@ def macdAndRsiKline():
                     "macd" : macd,
                     "macdSignal" : signal
                 }
-                dataBuy.append(data)
-                msg = data["symbol"]+ " Alış:" + str(data["openPrice"]).replace(".", ",")
+                if Database.count_open_orders(connection)<10 and (not Database.isExist(connection,x)):
+                    order =(x,klines[-1][4],klines[-1][0]/1000)
+                    Database.create_buy_order(connection,order)
+                else:
+                    break
+                msg = data["symbol"]+ "\U0001F4C8 Alış:" + str(data["openPrice"]).replace(".", ",")
                 bot.send_message(-1001408874432, msg)
                 print(msg)
-    if len(dataBuy)>0:
-        return dataBuy
+   
 
-def rsiKline():
-    RSIDATA = []
-    for x in SYMBOLS:
-        close=[]
-        klines = client.get_historical_klines(x, Client.KLINE_INTERVAL_1HOUR, TIME)
 
-        if len(close) > 21:
-            for entry in klines:
-                close.append(float(entry[4]))
-
-            sell,  buy, invRsi = RSI(close)
-
-            print(x," ",sell," ", buy, " ", invRsi)
-            if buy:
-                data = {
-                    "symbol": x,
-                    "openPrice": klines[-1][4],
-                    "time": klines[-1][0],
-                    "rsi": invRsi
-                }
-                RSIDATA.append(data)
-                msg = data["symbol"]+ " Alış:" + str(data["openPrice"]).replace(".", ",")
-                #bot.send_message(-1001408874432, msg)
-    return RSIDATA
 
 
 
@@ -158,8 +135,8 @@ def historicalKline2():
 def goldenCrossKline():
     for x in SYMBOLS:
         close=[]
-        klines = client.get_historical_klines(x, Client.KLINE_INTERVAL_1DAY, TIME)
-        if len(klines) > 200:
+        klines = client.get_historical_klines(x, Client.KLINE_INTERVAL_1DAY, "10 month ago UTC+3")
+        if len(klines) > 225:
             for entry in klines:
                 close.append(float(entry[4]))
 
@@ -175,57 +152,15 @@ def goldenCrossKline():
                 print(msg2)
                 bot.send_message(-1001408874432, msg2)
             
-                
-
-def process_message_1HOUR(msg):
-    global hour4_first
-    if msg['k']['x'] :
-        candleDataClose_1H.append(float(msg['k']['c']))
-    else:
-        candleDataClose_1H[-1] = float(msg['k']['c'])
-    
-    ligneMACD,signal = MACDEMA(candleDataClose_1H)
-    print("MACD DEMA: ",ligneMACD,signal)
 
 
-def websocket():
-    bm = BinanceSocketManager(client)
-    bm.start()
-    bm.start_kline_socket(SYMBOL, process_message_1HOUR, interval=KLINE_INTERVAL_1HOUR)
-
-
-Scounter=0
 if __name__ == '__main__':
-
     client = Client(config.api_key, config.api_secret)
     bot = telebot.TeleBot("1628197070:AAFLvfUgbwO8qnY4YkQJ8yLHLoube-51GKc", parse_mode="MarkdownV2")
     fillSymbols()
-    macdAndRsiKline()
-    bot.polling()
-    #websocket()
-    
-
-
-    # -1001408874432 GRUP
-    # 1487856885 EMRE
-
-
-
-  
-    #
-    #isOpen = False
-    #while True:
-    #    if not isOpen:
-    #        historcialKline()
-    #        
-    #        isOpen=True
-    #        Scounter +=1
-    #        if Scounter >= len(SYMBOL): Scounter = 0
-    #    else:
-    #        if counter == 3:
-    #            bm.stop_socket(key)
-    #            counter=0
-    #            isOpen=False
-    #            candleDataClose_4H.clear()
-    #            SYMBOL = SYMBOLS[Scounter]
-#
+    print("Buyer is working")
+    while True:
+        if Database.count_open_orders(connection)<10:
+            macdAndRsiKlineBuy()
+        else:
+            time.sleep(10)
