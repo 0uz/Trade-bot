@@ -117,7 +117,6 @@ def macdAndRsiKlineBuy():
                 close.append(float(entry[4]))
             cciBuy ,cciSell, invcci = cci(high,low,close)
             macdBuy, signalSell, macd, signal = MACDEMA(close)
-            print(x)
             if macdBuy and cciBuy:
                 if Database.count_open_orders(connection)<10 and (not Database.isExist(connection,x)):
                     order =(x,klines[-1][4],klines[-1][0]/1000)
@@ -128,11 +127,6 @@ def macdAndRsiKlineBuy():
                 bot.send_message(-1001408874432, msg)
                 print(msg)
    
-
-
-
-
-
 def historicalKline2():
         klines = client.get_historical_klines('BTCUSDT', Client.KLINE_INTERVAL_1HOUR, TIME)
         for entry in klines:
